@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: sqlite:////app/data/fx.db
+      CORS_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+      EXCHANGE_PROVIDER: frankfurter
+      NEWS_PROVIDER: rss
+      ALLOW_MOCK_FALLBACK: "true"
+      ADMIN_API_ENABLED: "true"
+      SCHEDULER_ENABLED: "true"
+    volumes:
+      - fx-data:/app/data
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  fx-data:
