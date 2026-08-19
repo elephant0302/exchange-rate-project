@@ -21,6 +21,7 @@ from app.services.catalog import (
     PAIR_CNY_KRW,
     PAIR_EUR_KRW,
     PAIR_JPY_KRW,
+    PAIR_USD_KRW,
     SUPPORTED_PAIRS,
     get_indicator,
     seed_indicators,
@@ -346,6 +347,17 @@ def generate_forecasts(
     provider = build_forecast_provider()
     generated = 0
     reasons: list[str] = []
+    usd_dates: list[date] = []
+    usd_values: list[float] = []
+    usd_indicator = get_indicator(db, PAIR_USD_KRW)
+    if usd_indicator is not None:
+        usd_rows = db.execute(
+            select(Observation.observed_at, Observation.value)
+            .where(Observation.indicator_id == usd_indicator.id)
+            .order_by(Observation.observed_at.asc())
+        ).all()
+        usd_dates = [row[0] for row in usd_rows]
+        usd_values = [row[1] for row in usd_rows]
     for pair in pairs:
         indicator = get_indicator(db, pair)
         if indicator is None:
@@ -358,7 +370,14 @@ def generate_forecasts(
         dates = [row[0] for row in rows]
         values = [row[1] for row in rows]
         is_mock = any(row[2] for row in rows)
-        result = provider.generate(pair, dates, values, horizon=horizon)
+        result = provider.generate(
+            pair,
+            dates,
+            values,
+            horizon=horizon,
+            factor_dates=usd_dates or None,
+            factor_values=usd_values or None,
+        )
         if not result.available:
             reasons.append(f"{pair}: {result.unavailable_reason}")
             continue
@@ -367,7 +386,7 @@ def generate_forecasts(
         db,
         "forecast",
         status="success" if generated else "failed",
-        source="통계 모델 (Naive / 최근 Drift / LocalMean / ARIMA)",
+        source="결합 예측 (RW / AR / Holt / DollarFactor) + GARCH(1,1) 구간",
         message=f"{generated}개 예측점 저장. " + "; ".join(reasons),
         is_mock=False,
         success=generated > 0,

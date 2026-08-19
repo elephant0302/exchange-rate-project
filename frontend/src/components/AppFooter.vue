@@ -14,6 +14,7 @@ defineProps<{
     <div>
       <p class="text-ink">예측 모델</p>
       <p class="mt-1">{{ forecast?.model_name || "미생성" }}</p>
+      <p>RW 벤치마크 + AR/Holt 결합, 구간은 GARCH(1,1)</p>
       <p>학습 구간 {{ formatDate(forecast?.trained_from) }} ~ {{ formatDate(forecast?.trained_to) }}</p>
       <p>
         검증 MAE {{ forecast?.mae == null ? "—" : formatNumber(forecast.mae, 3) }}

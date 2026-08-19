@@ -81,6 +81,8 @@ class ForecastProvider(Protocol):
         dates: list[date],
         values: list[float],
         horizon: int = 30,
+        factor_dates: list[date] | None = None,
+        factor_values: list[float] | None = None,
     ) -> ForecastResult:
         ...
 
