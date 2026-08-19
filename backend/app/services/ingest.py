@@ -367,7 +367,7 @@ def generate_forecasts(
         db,
         "forecast",
         status="success" if generated else "failed",
-        source="통계 모델 (Naive / Drift / ARIMA)",
+        source="통계 모델 (Naive / 최근 Drift / LocalMean / ARIMA)",
         message=f"{generated}개 예측점 저장. " + "; ".join(reasons),
         is_mock=False,
         success=generated > 0,
